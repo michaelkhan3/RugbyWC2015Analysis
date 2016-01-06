@@ -1,0 +1,111 @@
+---
+title: "dataMunging"
+author: "Michael Khan"
+date: "4 January 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Set working directory
+Change this path as needed to run
+```{r}
+setwd("~/Dropbox/DataAnalytics/RugbyWC2015/code")
+```
+
+
+Necessary imports
+```{r}
+library(reshape)
+
+```
+
+Import Data
+```{r}
+data <- read.csv('../data/rwc2015.csv', header = TRUE)
+playerPositions <- read.csv('../data/playerPositions.csv', header = TRUE)
+```
+
+
+Quick exploration of the data
+```{r}
+dim(data)
+names(data)
+```
+From this we can see that there are 4088 observations with 4 variables each: player_name, country, metric, value
+
+
+Now lets look further into the data
+```{r}
+summary(data)
+```
+From this summary of the fields we can start to see how the data is organised in the file.
+It looks like each player is represented by multiple rows of data, with the metric field showing which of the metrics is beeing show in this row.
+```{r}
+unique(data$metric)
+```
+As we can see from the above command there are 10 different metrics shown in this data.
+
+
+As I continue with my analysis I would prefer to transform this data so that each metric is a variable and each row is a player.
+For this task I will use the reshape package imported above
+
+```{r}
+new_data <- cast(data, player_name + country ~ metric)
+new_data_NAs <- new_data
+```
+
+Here is an short extract of what the data look like now
+```{r}
+head(new_data)
+```
+As we can see from the above extract NA was inserted where the values did not exist for a given player and metric. It looks like the NAs signify when a player has 0 of a metric, altough I am not 100% sure for this exercise I will replace NAs with 0
+```{r}
+new_data[is.na(new_data)] <- 0
+```
+
+The summary of the 10 different metrics' is now more true to reality
+```{r}
+summary(new_data)
+```
+
+
+Finding the leader in each category 
+```{r}
+max_carries <- new_data[new_data$carries == max(new_data$carries),]
+max_cogl <- new_data[new_data$carries_over_gain_line == max(new_data$carries_over_gain_line),]
+max_cb <- new_data[new_data$clean_breaks == max(new_data$clean_breaks),]
+max_los <- new_data[new_data$lineout_steals == max(new_data$lineout_steals),]
+max_low <- new_data[new_data$lineouts_won == max(new_data$lineouts_won),]
+max_mm <- new_data[new_data$metres_made == max(new_data$metres_made),]
+max_om <- new_data[new_data$offloads_made == max(new_data$offloads_made),]
+max_tries <- new_data[new_data$tries == max(new_data$tries),]
+max_tow <- new_data[new_data$turnovers_won == max(new_data$turnovers_won),]
+```
+
+
+I'm going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data.
+With K-means you have to specify the number of center to use for clustering I'm going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back 
+```{r}
+set.seed(2015)
+kmeansRes <- kmeans(new_data, centers = 9)
+```
+
+adding a new column to the data to hold the number of the cluster it was assigned to.
+```{r}
+new_data$cluster <- kmeansRes$cluster
+```
+
+
+Merging the two different data sources to check the results of clustering on 
+```{r}
+merged <- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name')
+merged_left <- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name', all.x = TRUE)
+merged_right <- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name', all.y = TRUE)
+
+missing_left <- merged_left[is.na(merged_left$Pos), ]
+missing_right <- merged_right[is.na(merged_right$country), ]
+```
+only 535 of 620 were matched. This issue seems to be caused mostly by small discrepancies in the names between the two data sources e.g. Apisalome Ratuniyarawa / Api Ratuniyarewa. For this exercise its ok to disregard the 87 missmatches, for other more important problems we could use a fuzzy string matching algorithm like the Levenshtein distance algorithm to match the strings that don't match exactly.

@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1452043405105.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "29F2818",
+    "lastKnownWriteTime" : 140441737506280,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "merged",
+        "contentUrl" : "content?title=merged&file=72a0f085dd8345a2b4b70cc3db48742a.htm",
+        "displayedObservations" : "535",
+        "displayedVariables" : 21,
+        "totalObservations" : "535",
+        "variables" : "21"
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
