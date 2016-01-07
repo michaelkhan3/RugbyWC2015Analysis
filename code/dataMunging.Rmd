@@ -18,8 +18,8 @@ setwd("~/Dropbox/DataAnalytics/RugbyWC2015/code")
 
 Necessary imports
 ```{r}
-library(reshape)
-
+library(reshape2)
+library(cluster)
 ```
 
 Import Data
@@ -50,10 +50,10 @@ As we can see from the above command there are 10 different metrics shown in thi
 
 
 As I continue with my analysis I would prefer to transform this data so that each metric is a variable and each row is a player.
-For this task I will use the reshape package imported above
+For this task I will use the reshape2 package imported above
 
 ```{r}
-new_data <- cast(data, player_name + country ~ metric)
+new_data <- dcast(data, player_name + country ~ metric)
 new_data_NAs <- new_data
 ```
 
@@ -65,10 +65,18 @@ As we can see from the above extract NA was inserted where the values did not ex
 ```{r}
 new_data[is.na(new_data)] <- 0
 ```
-
 The summary of the 10 different metrics' is now more true to reality
 ```{r}
 summary(new_data)
+```
+
+
+I'm going to divide all the metrics by the number of games played by each player to remove bias of the number of games played by each player.
+```{r}
+columnsToDivide <- c(3,4,5,6,7,9,10,11,12)
+for(i in columnsToDivide) {
+  new_data[ ,i] = new_data[ ,i] / new_data$matches
+} 
 ```
 
 
@@ -86,11 +94,13 @@ max_tow <- new_data[new_data$turnovers_won == max(new_data$turnovers_won),]
 ```
 
 
-I'm going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data.
-With K-means you have to specify the number of center to use for clustering I'm going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back 
+I'm going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data. With K-means you have to specify the number of center to use for clustering I'm going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back 
 ```{r}
-set.seed(2015)
-kmeansRes <- kmeans(new_data, centers = 9)
+
+
+set.seed(1)
+kmeansIn <- data.matrix(new_data[, -c(1,2,8)])
+kmeansRes <- kmeans(kmeansIn, centers = 3)
 ```
 
 adding a new column to the data to hold the number of the cluster it was assigned to.
@@ -109,3 +119,34 @@ missing_left <- merged_left[is.na(merged_left$Pos), ]
 missing_right <- merged_right[is.na(merged_right$country), ]
 ```
 only 535 of 620 were matched. This issue seems to be caused mostly by small discrepancies in the names between the two data sources e.g. Apisalome Ratuniyarawa / Api Ratuniyarewa. For this exercise its ok to disregard the 87 missmatches, for other more important problems we could use a fuzzy string matching algorithm like the Levenshtein distance algorithm to match the strings that don't match exactly.
+
+```{r}
+kmeansRes$size
+```
+
+Lets look at a table of position vs cluster
+```{r}
+table(merged$cluster, merged$Pos)
+```
+
+
+As a quick exploration of the results I will use the 9th cluster as it is narrowly the largest one with 125 player in it (got from above code)
+```{r}
+clust3 <- merged[merged$cluster == 3, ]
+clust1 <- merged[merged$cluster == 1, ]
+clust2 <- merged[merged$cluster == 2, ]
+summary(clust9$Pos)
+
+table(clust9$Pos, clust9$matches)
+```
+
+
+***Plot
+Create silhouette plot
+```{r}
+dissE <- daisy(kmeansIn)
+dE2 <- dissE^2
+sk2 <- silhouette(kmeansRes$cl, dE2)
+plot(sk2, col=c('blue'))
+```
+
