@@ -20,6 +20,7 @@ Necessary imports
 ```{r}
 library(reshape2)
 library(cluster)
+library(ggplot2)
 ```
 
 Import Data
@@ -130,23 +131,58 @@ table(merged$cluster, merged$Pos)
 ```
 
 
-As a quick exploration of the results I will use the 9th cluster as it is narrowly the largest one with 125 player in it (got from above code)
+Split the data into 3 dataframes one for each cluster
 ```{r}
 clust3 <- merged[merged$cluster == 3, ]
 clust1 <- merged[merged$cluster == 1, ]
 clust2 <- merged[merged$cluster == 2, ]
-summary(clust9$Pos)
+summary(clust1$Pos)
 
-table(clust9$Pos, clust9$matches)
 ```
 
 
-***Plot
+***Cluster Plot
 Create silhouette plot
 ```{r}
+graphColors = c('red', 'green', 'blue')
 dissE <- daisy(kmeansIn)
 dE2 <- dissE^2
 sk2 <- silhouette(kmeansRes$cl, dE2)
-plot(sk2, col=c('blue'))
+plot(sk2, col=graphColors)
 ```
 
+
+
+***Exploratory Graphs
+
+Comparing tries scored by cluster
+```{r}
+boxplot(merged$tries ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Tries scored per game', main='Tries scored per game cluster comparison')
+ggplot(merged, aes(merged$tries, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2)
+```
+
+
+Comparing meters made by cluster
+```{r}
+boxplot(merged$metres_made ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Meters made per game', main='Meters made cluster comparison')
+#ggplot(merged, aes(x=as.factor(merged$cluster), y=metres_made, fill=as.factor(merged$cluster))) + geom_boxplot() + scale_fill_discrete(name = 'Clusters')
+ggplot(merged, aes(metres_made, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+```
+
+Comparing turn overs by cluster
+```{r}
+boxplot(merged$turnovers_won ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Meters made per game', main='Meters made cluster comparison')
+ggplot(merged, aes(turnovers_won, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+```
+
+Comparing clean breaks by cluster
+```{r}
+boxplot(merged$clean_breaks ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Clean breaks made per game', main='Clean breaks made cluster comparison')
+ggplot(merged, aes(clean_breaks, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+```
+
+Comparing carries over gain line (cogl) by cluster
+```{r}
+boxplot(merged$carries_over_gain_line ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Carries over gain line per game', main='Carries over gain line cluster comparison')
+ggplot(merged, aes(carries_over_gain_line, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+```
