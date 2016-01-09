@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1452358016822.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "145328CC",
+    "lastKnownWriteTime" : 4294967296,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "max_mm",
+        "contentUrl" : "content?title=max_mm&file=51ae2701e867420aa76408f46ca2693d.htm",
+        "displayedObservations" : 1,
+        "displayedVariables" : 13,
+        "totalObservations" : 1,
+        "variables" : 12
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

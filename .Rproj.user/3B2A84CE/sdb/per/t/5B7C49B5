@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1452358572295.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5B7C49B5",
+    "lastKnownWriteTime" : 31525687025139712,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "max_low",
+        "contentUrl" : "content?title=max_low&file=59db56e7496b456f8ce1bb9c18a9bd40.htm",
+        "displayedObservations" : 1,
+        "displayedVariables" : 13,
+        "totalObservations" : 1,
+        "variables" : 12
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

@@ -145,7 +145,7 @@ graphColors = c('red', 'green', 'blue')
 dE <- daisy(kmeansIn)
 dE2 <- dE^2
 silPlot <- silhouette(kmeansRes$cl, dE2)
-plot(silPlot, col=graphColors)
+plot(silPlot, col=graphColors, main='Silhouette plot of 3 player clusters')
 ```
 
 
@@ -163,7 +163,7 @@ ggplot(merged, aes(merged$tries, fill = as.factor(merged$cluster))) + geom_densi
 ```{r}
 boxplot(merged$metres_made ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Meters made per game', main='Meters made cluster comparison')
 #ggplot(merged, aes(x=as.factor(merged$cluster), y=metres_made, fill=as.factor(merged$cluster))) + geom_boxplot() + scale_fill_discrete(name = 'Clusters')
-ggplot(merged, aes(metres_made, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+ggplot(merged, aes(metres_made, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters') + ggtitle('Meters made cluster comparison')
 ```
 
 #####Comparing turn overs by cluster
@@ -181,5 +181,5 @@ ggplot(merged, aes(clean_breaks, fill = as.factor(merged$cluster))) + geom_densi
 #####Comparing carries over gain line (cogl) by cluster
 ```{r}
 boxplot(merged$carries_over_gain_line ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Carries over gain line per game', main='Carries over gain line cluster comparison')
-ggplot(merged, aes(carries_over_gain_line, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
+ggplot(merged, aes(carries_over_gain_line, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters') + ggtitle('Carries over gain line cluster comparison')
 ```

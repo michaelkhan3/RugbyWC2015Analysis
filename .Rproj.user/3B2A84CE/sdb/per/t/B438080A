@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1452358653167.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "B438080A",
+    "lastKnownWriteTime" : -1,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "clust2",
+        "contentUrl" : "content?title=clust2&file=2e86c33990424d469a1e00d75525beef.htm",
+        "displayedObservations" : 38,
+        "displayedVariables" : 22,
+        "totalObservations" : 38,
+        "variables" : 21
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
