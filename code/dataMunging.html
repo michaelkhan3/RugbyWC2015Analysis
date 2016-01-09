@@ -67,7 +67,7 @@ library(cluster)
 library(ggplot2)</code></pre>
 <div id="importing-data" class="section level3">
 <h3>Importing Data</h3>
-<p><em>data contains the original data provided. </em>playerPosition cointains data on players’ phisical attributes and positions</p>
+<p><em>data contains the original data provided. </em>playerPosition contains data on players’ physical attributes and positions</p>
 <pre class="r"><code>data &lt;- read.csv('../data/rwc2015.csv', header = TRUE)
 playerPositions &lt;- read.csv('../data/playerPositions.csv', header = TRUE)</code></pre>
 </div>
@@ -190,7 +190,7 @@ max_tow &lt;- new_data[new_data$turnovers_won == max(new_data$turnovers_won),]</
 <blockquote>
 <p>I’m going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data. With K-means you have to specify the number of center to use for clustering I’m going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back.</p>
 </blockquote>
-<p>The above quote shows my initial intention of using clustering algorithm, having some knowledge of Rugby I knew that k-means was unlikely to be able to create 9 separate clusters not due to a fault in the algorithm but because of the nature of the sport. Many players can interchange between multiple positions for example a player like Australia’s Kurtley Beale can basically play any position in the back line. As well as players being interchangeable in modern day rugby the role of players in different positions can be very similar for example back-row forwards and centres can end up doing alot of the same jobs and when looking at their stats it can be difficult to differentiate between position. After alot of experimentation with the number of clusters I decided that 3 clusters made the most sense, while this didn’t slpit the players into each individual position it did create a pretty interesting division of the player.</p>
+<p>The above quote shows my initial intention of using clustering algorithm, having some knowledge of Rugby I knew that k-means was unlikely to be able to create 9 separate clusters not due to a fault in the algorithm but because of the nature of the sport. Many players can interchange between multiple positions for example a player like Australia’s Kurtley Beale can basically play any position in the back line. As well as players being interchangeable in modern day rugby the role of players in different positions can be very similar for example back-row forwards and centers can end up doing a lot of the same jobs and when looking at their stats it can be difficult to differentiate between position. After a lot of experimentation with the number of clusters I decided that 3 clusters made the most sense, while this didn’t split the players into each individual position it did create a pretty interesting division of the player.</p>
 <pre class="r"><code>set.seed(1)
 kmeansIn &lt;- data.matrix(new_data[, -c(1,2,8)])
 kmeansRes &lt;- kmeans(kmeansIn, centers = 3)</code></pre>
@@ -198,7 +198,7 @@ kmeansRes &lt;- kmeans(kmeansIn, centers = 3)</code></pre>
 <pre class="r"><code>new_data$cluster &lt;- kmeansRes$cluster</code></pre>
 <div id="merging-player-stats-and-position-data." class="section level4">
 <h4>Merging player stats and position data.</h4>
-<p>To analyse the results of the clustering on player positions I had to find a data source that included player position. I found a <a href="http://www.rugbyhow.com/2015RWC-all-player-sizes.html#AName%20order">dataset</a> with phisical measurements of players for the 2015 Rugby World Cup that also included player position. I merged the 2 datasets using player names</p>
+<p>To analyse the results of the clustering on player positions I had to find a data source that included player position. I found a <a href="http://www.rugbyhow.com/2015RWC-all-player-sizes.html#AName%20order">dataset</a> with physical measurements of players for the 2015 Rugby World Cup that also included player position. I merged the 2 data sets using player names</p>
 <pre class="r"><code>merged &lt;- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name')
 merged_left &lt;- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name', all.x = TRUE)
 merged_right &lt;- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name', all.y = TRUE)
@@ -218,7 +218,7 @@ missing_right &lt;- merged_right[is.na(merged_right$country), ]</code></pre>
 <div id="cluster-plot" class="section level3">
 <h3>Cluster Plot</h3>
 <p>The hereunder silhouette plot provides an interesting way at visualizing the effectiveness of the clusters created by k-means in high-dimensional problem such as this one.</p>
-<p>Each horizontal bar represents the ratio of how well a player fits into his cluster as apposed to his next nearest cluster. The closer to 1 these bars are the better a player fits into his currency cluster. Interesting observations from this graph include: <em>Cluster 3 is the largests and the best fit cluster with an average score ( s<sub>i</sub> ) of 0.86 </em>The small spike below 0 in cluster 1 signifies that a small number of players may have been more suitable in an other cluster.</p>
+<p>Each horizontal bar represents the ratio of how well a player fits into his cluster as apposed to his next nearest cluster. The closer to 1 these bars are the better a player fits into his currency cluster. Interesting observations from this graph include: <em>Cluster 3 is the largest and the best fit cluster with an average score ( s<sub>i</sub> ) of 0.86 </em>The small spike below 0 in cluster 1 signifies that a small number of players may have been more suitable in an other cluster.</p>
 <pre class="r"><code>graphColors = c('red', 'green', 'blue')
 dE &lt;- daisy(kmeansIn)
 dE2 &lt;- dE^2
