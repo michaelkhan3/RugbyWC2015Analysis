@@ -1,36 +1,35 @@
 ---
-title: "dataMunging"
+title: "Rugby World Cup 2015 Analysis"
 author: "Michael Khan"
 date: "4 January 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-Set working directory
+----
+Set working directory. 
 Change this path as needed to run
 ```{r}
 setwd("~/Dropbox/DataAnalytics/RugbyWC2015/code")
 ```
 
 
-Necessary imports
+Necessary package imports
 ```{r}
 library(reshape2)
 library(cluster)
 library(ggplot2)
 ```
 
-Import Data
+###Importing Data
+*data contains the original data provided.
+*playerPosition cointains data on players' phisical attributes and positions
 ```{r}
 data <- read.csv('../data/rwc2015.csv', header = TRUE)
 playerPositions <- read.csv('../data/playerPositions.csv', header = TRUE)
 ```
 
 
-Quick exploration of the data
+###Quick exploration of the data
 ```{r}
 dim(data)
 names(data)
@@ -43,15 +42,16 @@ Now lets look further into the data
 summary(data)
 ```
 From this summary of the fields we can start to see how the data is organised in the file.
-It looks like each player is represented by multiple rows of data, with the metric field showing which of the metrics is beeing show in this row.
+It looks like each player is represented by multiple rows of data, with the metric field showing which of the metrics is being show in this row.
 ```{r}
 unique(data$metric)
 ```
 As we can see from the above command there are 10 different metrics shown in this data.
 
 
+###Data Munging
 As I continue with my analysis I would prefer to transform this data so that each metric is a variable and each row is a player.
-For this task I will use the reshape2 package imported above
+For this task I will use the [reshape2](https://cran.r-project.org/web/packages/reshape2/index.html) package imported above
 
 ```{r}
 new_data <- dcast(data, player_name + country ~ metric)
@@ -62,7 +62,7 @@ Here is an short extract of what the data look like now
 ```{r}
 head(new_data)
 ```
-As we can see from the above extract NA was inserted where the values did not exist for a given player and metric. It looks like the NAs signify when a player has 0 of a metric, altough I am not 100% sure for this exercise I will replace NAs with 0
+As we can see from the above extract NA was inserted where the values did not exist for a given player and metric. It looks like the NAs signify when a player has 0 of a metric, although I am not 100% sure for this exercise I will replace NAs with 0
 ```{r}
 new_data[is.na(new_data)] <- 0
 ```
@@ -72,7 +72,7 @@ summary(new_data)
 ```
 
 
-I'm going to divide all the metrics by the number of games played by each player to remove bias of the number of games played by each player.
+I'm going to divide all the metrics by the number of games played by each player to remove bias of the number of games each player took part in.
 ```{r}
 columnsToDivide <- c(3,4,5,6,7,9,10,11,12)
 for(i in columnsToDivide) {
@@ -95,10 +95,13 @@ max_tow <- new_data[new_data$turnovers_won == max(new_data$turnovers_won),]
 ```
 
 
-I'm going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data. With K-means you have to specify the number of center to use for clustering I'm going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back 
+###Clustering players
+
+> I'm going to try to use K-means clustering to see if we can group players by possitions by using just the 10 fields provided in the data. With K-means you have to specify the number of center to use for clustering I'm going to start with 9, one for each position: prop, hooker, lock, back row, scrum half, fly half, center, wing and full back. 
+
+The above quote shows my initial intention of using clustering algorithm, having some knowledge of Rugby I knew that k-means was unlikely to be able to create 9 separate clusters not due to a fault in the algorithm but because of the nature of the sport. Many players can interchange between multiple positions for example a player like Australia's Kurtley Beale can basically play any position in the back line. As well as players being interchangeable in modern day rugby the role of players in different positions can be very similar for example back-row forwards and centres can end up doing alot of the same jobs and when looking at their stats it can be difficult to differentiate between position.
+After alot of experimentation with the number of clusters I decided that 3 clusters made the most sense, while this didn't slpit the players into each individual position it did create a pretty interesting division of the player. 
 ```{r}
-
-
 set.seed(1)
 kmeansIn <- data.matrix(new_data[, -c(1,2,8)])
 kmeansRes <- kmeans(kmeansIn, centers = 3)
@@ -110,7 +113,9 @@ new_data$cluster <- kmeansRes$cluster
 ```
 
 
-Merging the two different data sources to check the results of clustering on 
+####Merging player stats and position data.
+To analyse the results of the clustering on player positions I had to find a data source that included player position.
+I found a [dataset](http://www.rugbyhow.com/2015RWC-all-player-sizes.html#AName order) with phisical measurements of players for the 2015 Rugby World Cup that also included player position. I merged the 2 datasets using player names 
 ```{r}
 merged <- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name')
 merged_left <- merge(x = new_data, y = playerPositions, by.x = 'player_name', by.y = 'Player.name', all.x = TRUE)
@@ -119,11 +124,7 @@ merged_right <- merge(x = new_data, y = playerPositions, by.x = 'player_name', b
 missing_left <- merged_left[is.na(merged_left$Pos), ]
 missing_right <- merged_right[is.na(merged_right$country), ]
 ```
-only 535 of 620 were matched. This issue seems to be caused mostly by small discrepancies in the names between the two data sources e.g. Apisalome Ratuniyarawa / Api Ratuniyarewa. For this exercise its ok to disregard the 87 missmatches, for other more important problems we could use a fuzzy string matching algorithm like the Levenshtein distance algorithm to match the strings that don't match exactly.
-
-```{r}
-kmeansRes$size
-```
+only 535 of 620 players were matched. This issue seems to be caused mostly by small discrepancies in the names between the two data sources e.g. Apisalome Ratuniyarawa / Api Ratuniyarewa. For this exercise its ok to disregard the 87 mismatches, for other more important problems we could use a fuzzy string matching algorithm like the Levenshtein distance algorithm to match the strings that don't match exactly.
 
 Lets look at a table of position vs cluster
 ```{r}
@@ -131,57 +132,53 @@ table(merged$cluster, merged$Pos)
 ```
 
 
-Split the data into 3 dataframes one for each cluster
-```{r}
-clust3 <- merged[merged$cluster == 3, ]
-clust1 <- merged[merged$cluster == 1, ]
-clust2 <- merged[merged$cluster == 2, ]
-summary(clust1$Pos)
 
-```
+###Cluster Plot
+The hereunder silhouette plot provides an interesting way at visualizing the effectiveness of the clusters created by k-means in high-dimensional problem such as this one.  
 
-
-***Cluster Plot
-Create silhouette plot
+Each horizontal bar represents the ratio of how well a player fits into his cluster as apposed to his next nearest cluster. The closer to 1 these bars are the better a player fits into his currency cluster.
+Interesting observations from this graph include:
+ *Cluster 3 is the largests and the best fit cluster with an average score ( s~i~ ) of 0.86
+ *The small spike below 0 in cluster 1 signifies that a small number of players may have been more suitable in an other cluster. 
 ```{r}
 graphColors = c('red', 'green', 'blue')
-dissE <- daisy(kmeansIn)
-dE2 <- dissE^2
-sk2 <- silhouette(kmeansRes$cl, dE2)
-plot(sk2, col=graphColors)
+dE <- daisy(kmeansIn)
+dE2 <- dE^2
+silPlot <- silhouette(kmeansRes$cl, dE2)
+plot(silPlot, col=graphColors)
 ```
 
 
 
-***Exploratory Graphs
+###Exploratory Graphs
 
-Comparing tries scored by cluster
+#####Comparing tries scored by cluster
 ```{r}
 boxplot(merged$tries ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Tries scored per game', main='Tries scored per game cluster comparison')
 ggplot(merged, aes(merged$tries, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2)
 ```
 
 
-Comparing meters made by cluster
+#####Comparing meters made by cluster
 ```{r}
 boxplot(merged$metres_made ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Meters made per game', main='Meters made cluster comparison')
 #ggplot(merged, aes(x=as.factor(merged$cluster), y=metres_made, fill=as.factor(merged$cluster))) + geom_boxplot() + scale_fill_discrete(name = 'Clusters')
 ggplot(merged, aes(metres_made, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
 ```
 
-Comparing turn overs by cluster
+#####Comparing turn overs by cluster
 ```{r}
 boxplot(merged$turnovers_won ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Meters made per game', main='Meters made cluster comparison')
 ggplot(merged, aes(turnovers_won, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
 ```
 
-Comparing clean breaks by cluster
+#####Comparing clean breaks by cluster
 ```{r}
 boxplot(merged$clean_breaks ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Clean breaks made per game', main='Clean breaks made cluster comparison')
 ggplot(merged, aes(clean_breaks, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
 ```
 
-Comparing carries over gain line (cogl) by cluster
+#####Comparing carries over gain line (cogl) by cluster
 ```{r}
 boxplot(merged$carries_over_gain_line ~ merged$cluster, varwidth = TRUE, col=graphColors, xlab='Cluster', ylab='Carries over gain line per game', main='Carries over gain line cluster comparison')
 ggplot(merged, aes(carries_over_gain_line, fill = as.factor(merged$cluster))) + geom_density(alpha = 0.2) + scale_fill_discrete(name = 'Clusters')
